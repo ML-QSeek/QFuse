@@ -26,9 +26,9 @@
             --scrollbar-track: #1a1412;
             --scrollbar-thumb: #3a2c24;
             --scrollbar-thumb-hover: #5a4438;
+            --menu-highlight: rgba(246, 176, 124, 0.25);
         }
 
-        /* ===== 全局滚动条 ===== */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
         ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 0; }
@@ -36,7 +36,6 @@
         ::-webkit-scrollbar-corner { background: var(--scrollbar-track); }
         * { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track); }
 
-        /* ===== Reset ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; overflow: hidden; }
         body {
@@ -191,7 +190,8 @@
         .edge-toolbar-group {
             position: fixed;
             right: 0;
-            bottom: 60px;
+            top: 50%;
+            transform: translateY(-50%);
             z-index: 150;
             display: flex;
             flex-direction: column;
@@ -207,13 +207,11 @@
         .edge-toolbar .color-bar {
             width: 4px;
             background: var(--primary);
-            opacity: 0.2;
             flex-shrink: 0;
-            transition: opacity 0.3s ease, width 0.3s ease;
+            transition: background 0.2s;
         }
         .edge-toolbar:hover .color-bar {
-            opacity: 0.6;
-            width: 3px;
+            background: var(--primary-dark);
         }
 
         .edge-toolbar .tool-box {
@@ -269,11 +267,155 @@
             border-bottom: 1px solid var(--border-color);
         }
 
+        /* ===== 底部工具栏 ===== */
+        .bottom-color-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 155;
+            width: 188px;
+            height: 4px;
+            background: var(--primary);
+            transition: background 0.2s;
+            pointer-events: none;
+        }
+
+        .bottom-tool-box {
+            position: fixed;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%) translateY(8px);
+            z-index: 160;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 6px;
+            gap: 2px;
+            width: 188px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .bottom-trigger-area {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 165;
+            width: 200px;
+            height: 48px;
+            cursor: default;
+        }
+
+        .bottom-trigger-area:hover ~ .bottom-tool-box,
+        .bottom-tool-box:hover {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .bottom-trigger-area:hover ~ .bottom-color-bar {
+            background: var(--primary-dark);
+        }
+
+        .bottom-tool-box:hover ~ .bottom-color-bar {
+            background: var(--primary-dark);
+        }
+
+        .bottom-trigger-area:hover ~ .bottom-color-bar,
+        .bottom-tool-box:hover ~ .bottom-color-bar {
+            background: var(--primary-dark);
+        }
+
+        .bottom-tool-box .bottom-btn {
+            width: 36px;
+            height: 32px;
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            border-radius: 0;
+            font-family: inherit;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .bottom-tool-box .bottom-btn:hover {
+            color: var(--primary-light);
+            background: var(--card-hover);
+        }
+        .bottom-tool-box .bottom-btn:active {
+            transform: scale(0.90);
+        }
+        .bottom-tool-box .bottom-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border-color);
+            flex-shrink: 0;
+            margin: 0 2px;
+        }
+
+        /* ===== 底部字幕区 ===== */
+        #subtitleArea {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 140;
+            width: 70%;
+            max-width: 800px;
+            min-height: 50px;
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 350;
+            letter-spacing: 0.8px;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+            pointer-events: none;
+            line-height: 1.7;
+            word-break: break-word;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.9), 0 0 40px rgba(0,0,0,0.5);
+        }
+        #subtitleArea.active {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: none;
+        }
+        #subtitleArea .subtitle-line {
+            opacity: 0;
+            animation: subtitleFade 3.2s ease-in-out forwards;
+            display: inline-block;
+        }
+        @keyframes subtitleFade {
+            0% { opacity: 0; transform: translateY(12px); }
+            18% { opacity: 1; transform: translateY(0); }
+            82% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-12px); }
+        }
+
         /* ===== 对话框 ===== */
         .dialog-container {
             position: fixed;
-            bottom: 80px;
-            left: 40px;
+            bottom: 160px;
+            left: 160px;
             width: 520px;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -327,7 +469,6 @@
             font-size: 13px;
         }
 
-        /* 发送按钮 — 宽度缩到 10px */
         .dialog-body .send-btn {
             width: 10px;
             min-height: 44px;
@@ -347,6 +488,73 @@
         }
         .dialog-body .send-btn:active {
             transform: scale(0.94);
+        }
+
+        /* ===== 对话框下方菜单面板 ===== */
+        .dialog-menu-panel {
+            position: fixed;
+            left: 160px;
+            top: calc(160px + 44px + 2px);
+            width: 520px;
+            height: 32px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            padding: 0 6px;
+            gap: 2px;
+            z-index: 98;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .dialog-menu-panel.open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .dialog-menu-panel .menu-item {
+            height: 26px;
+            padding: 0 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            border-radius: 0;
+            white-space: nowrap;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .dialog-menu-panel .menu-item:hover {
+            color: var(--primary-light);
+            background: var(--card-hover);
+        }
+        .dialog-menu-panel .menu-item:active {
+            transform: scale(0.94);
+        }
+        .dialog-menu-panel .menu-item.highlight {
+            color: var(--primary-light);
+            background: var(--menu-highlight);
+            box-shadow: inset 0 0 20px rgba(246,176,124,0.08);
+        }
+        .dialog-menu-panel .menu-divider {
+            width: 1px;
+            height: 18px;
+            background: var(--border-color);
+            flex-shrink: 0;
+            margin: 0 2px;
         }
 
         /* ===== 弹窗 ===== */
@@ -418,12 +626,11 @@
             margin-bottom: 10px;
         }
 
-        /* ===== Responsive ===== */
         @media (max-width: 640px) {
             .dialog-container {
                 width: calc(100% - 32px);
                 left: 16px;
-                bottom: 70px;
+                bottom: 56px;
             }
             .dialog-body .input-area { font-size: 13px; padding: 8px 12px; min-height: 40px; }
             .dialog-body .send-btn { width: 8px; min-height: 40px; }
@@ -433,7 +640,50 @@
             .modal-box { width: 95vw; max-height: 80vh; }
             .edge-toolbar .tool-box { width: 36px; }
             .edge-toolbar .tool-box .tool-btn { height: 28px; min-height: 28px; font-size: 15px; }
-            .edge-toolbar-group { bottom: 50px; gap: 4px; }
+
+            .bottom-color-bar,
+            .bottom-tool-box {
+                width: 152px;
+            }
+            .bottom-color-bar { height: 3px; }
+            .bottom-tool-box { padding: 3px 4px; bottom: 3px; }
+            .bottom-tool-box .bottom-btn {
+                width: 30px;
+                height: 28px;
+                font-size: 13px;
+            }
+            .bottom-tool-box .bottom-divider {
+                height: 16px;
+                margin: 0 1px;
+            }
+            .bottom-trigger-area {
+                width: 164px;
+                height: 40px;
+            }
+            #subtitleArea {
+                width: 90%;
+                font-size: 20px;
+                padding: 14px 20px;
+                bottom: 50px;
+                min-height: 40px;
+            }
+
+            .dialog-menu-panel {
+                left: 16px;
+                top: calc(56px + 40px + 2px);
+                width: calc(100% - 32px);
+                height: 28px;
+                padding: 0 4px;
+            }
+            .dialog-menu-panel .menu-item {
+                font-size: 11px;
+                padding: 0 8px;
+                height: 22px;
+            }
+            .dialog-menu-panel .menu-divider {
+                height: 14px;
+                margin: 0 1px;
+            }
         }
     </style>
 </head>
@@ -467,7 +717,7 @@
 
     <!-- ===== 右侧边缘工具条组 ===== -->
     <div class="edge-toolbar-group">
-
+        <!-- 第一组：聊天 / 字幕 / 输入模式 -->
         <div class="edge-toolbar">
             <div class="tool-box">
                 <button class="tool-btn" id="toolChat" title="聊天">💬</button>
@@ -476,16 +726,31 @@
             </div>
             <div class="color-bar"></div>
         </div>
-
+        <!-- 第二组：主菜单 / 当前菜单 / 历史记录 -->
         <div class="edge-toolbar">
             <div class="tool-box">
                 <button class="tool-btn" id="toolHome" title="主菜单">🏠</button>
                 <button class="tool-btn" id="toolMenu" title="当前菜单">☰</button>
+                <button class="tool-btn" id="toolHistory" title="历史记录">🕐</button>
             </div>
             <div class="color-bar"></div>
         </div>
-
     </div>
+
+    <!-- ===== 底部工具栏 ===== -->
+    <div class="bottom-trigger-area"></div>
+    <div class="bottom-tool-box">
+        <button class="bottom-btn" id="btnSave" title="保存当前HTML">💾</button>
+        <div class="bottom-divider"></div>
+        <button class="bottom-btn" id="btnSubmit" title="提交让AI修改">📤</button>
+        <div class="bottom-divider"></div>
+        <button class="bottom-btn" id="btnPrev" title="上一个HTML">◀</button>
+        <button class="bottom-btn" id="btnNext" title="下一个HTML">▶</button>
+    </div>
+    <div class="bottom-color-bar"></div>
+
+    <!-- ===== 底部字幕区 ===== -->
+    <div id="subtitleArea"></div>
 
     <!-- ===== 对话框 ===== -->
     <div class="dialog-container" id="dialog">
@@ -494,6 +759,18 @@
             <textarea class="input-area" id="chatInput" placeholder="输入消息 … 回车发送 · Shift+回车换行" rows="2"></textarea>
             <button class="send-btn" id="sendBtn" title="发送 (Enter)"></button>
         </div>
+    </div>
+
+    <!-- ===== 对话框下方菜单面板 ===== -->
+    <div class="dialog-menu-panel" id="dialogMenuPanel">
+        <button class="menu-item" data-action="new">📄 新建</button>
+        <button class="menu-item" data-action="open">📂 打开</button>
+        <button class="menu-item" data-action="save">💾 保存</button>
+        <div class="menu-divider"></div>
+        <button class="menu-item" data-action="export">📤 导出</button>
+        <button class="menu-item" data-action="share">🔗 分享</button>
+        <div class="menu-divider"></div>
+        <button class="menu-item" data-action="delete">🗑 删除</button>
     </div>
 
     <!-- ===== 弹窗 ===== -->
@@ -525,6 +802,12 @@
             const toolMode = document.getElementById('toolMode');
             const toolHome = document.getElementById('toolHome');
             const toolMenu = document.getElementById('toolMenu');
+            const toolHistory = document.getElementById('toolHistory');  // 新增
+
+            const btnSave = document.getElementById('btnSave');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
 
             const modalOverlay = document.getElementById('modalOverlay');
             const modalClose = document.getElementById('modalClose');
@@ -533,64 +816,488 @@
             const modalContent = document.getElementById('modalContent');
             const topMenuBtns = document.querySelectorAll('.top-menu-btn');
 
-            function closeDialog() { dialog.classList.add('hidden'); }
-            function openDialog() { dialog.classList.remove('hidden'); setTimeout(() => chatInput.focus(), 150); }
-            function toggleDialog() { dialog.classList.contains('hidden') ? openDialog() : closeDialog(); }
+            // ===== 菜单面板 =====
+            const menuPanel = document.getElementById('dialogMenuPanel');
+            const menuItems = menuPanel.querySelectorAll('.menu-item');
+            let highlightIndex = -1;
+
+            // ===== 字幕相关 =====
+            const subtitleArea = document.getElementById('subtitleArea');
+            let captionOn = false;
+            let isSubtitlePlaying = false;
+            let subtitleTimer = null;
+
+            // 默认对话框位置（左下 → 右上偏移）
+            const DEFAULT_DIALOG_LEFT = 160;
+            const DEFAULT_DIALOG_BOTTOM = 160;
+
+            // ===== 页面历史管理 =====
+            const pageHistory = {
+                pages: [
+                    '<h1>页面 1</h1><p>这是第一个页面</p>',
+                    '<h1>页面 2</h1><p>这是第二个页面</p>',
+                    '<h1>页面 3</h1><p>这是第三个页面</p>'
+                ],
+                currentIndex: 0,
+                currentContent: ''
+            };
+
+            function getCurrentCanvasHTML() {
+                return placeholder.innerHTML;
+            }
+
+            function updateCanvasContent(html) {
+                placeholder.innerHTML = html;
+                pageHistory.currentContent = html;
+            }
+
+            function handleSave() {
+                const html = getCurrentCanvasHTML();
+                console.log('[QSense] 保存当前HTML');
+                btnSave.style.color = 'var(--success-color)';
+                setTimeout(() => { btnSave.style.color = ''; }, 500);
+                placeholder.innerHTML = `
+                    <span class="big">💾</span>
+                    HTML 已保存
+                    <br /><br />
+                    <span style="font-size:12px;opacity:0.5;">页面已保存到当前主题</span>
+                `;
+            }
+
+            function handleSubmit() {
+                console.log('[QSense] 提交HTML让AI修改');
+                btnSubmit.style.color = 'var(--primary)';
+                setTimeout(() => { btnSubmit.style.color = ''; }, 500);
+                placeholder.innerHTML = `
+                    <span class="big">📤</span>
+                    已提交 AI 处理
+                    <br /><br />
+                    <span style="font-size:12px;opacity:0.5;">AI 正在分析并生成修改方案...</span>
+                `;
+            }
+
+            function handlePrev() {
+                if (pageHistory.currentIndex > 0) {
+                    pageHistory.currentIndex--;
+                    updateCanvasContent(pageHistory.pages[pageHistory.currentIndex]);
+                    btnPrev.style.color = 'var(--primary)';
+                    setTimeout(() => { btnPrev.style.color = ''; }, 300);
+                } else {
+                    btnPrev.style.color = 'var(--error-color)';
+                    setTimeout(() => { btnPrev.style.color = ''; }, 300);
+                }
+            }
+
+            function handleNext() {
+                if (pageHistory.currentIndex < pageHistory.pages.length - 1) {
+                    pageHistory.currentIndex++;
+                    updateCanvasContent(pageHistory.pages[pageHistory.currentIndex]);
+                    btnNext.style.color = 'var(--primary)';
+                    setTimeout(() => { btnNext.style.color = ''; }, 300);
+                } else {
+                    btnNext.style.color = 'var(--error-color)';
+                    setTimeout(() => { btnNext.style.color = ''; }, 300);
+                }
+            }
+
+            btnSave.addEventListener('click', handleSave);
+            btnSubmit.addEventListener('click', handleSubmit);
+            btnPrev.addEventListener('click', handlePrev);
+            btnNext.addEventListener('click', handleNext);
+
+            // ===== 菜单面板控制 =====
+            let menuPanelOpen = false;
+
+            function updateMenuPanelPosition() {
+                const rect = dialog.getBoundingClientRect();
+                menuPanel.style.left = rect.left + 'px';
+                menuPanel.style.width = rect.width + 'px';
+                menuPanel.style.top = (rect.top + rect.height + 2) + 'px';
+            }
+
+            function clearHighlight() {
+                menuItems.forEach(item => item.classList.remove('highlight'));
+                highlightIndex = -1;
+            }
+
+            function setHighlight(index) {
+                clearHighlight();
+                if (index >= 0 && index < menuItems.length) {
+                    highlightIndex = index;
+                    menuItems[index].classList.add('highlight');
+                    menuItems[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                }
+            }
+
+            function closeMenuPanel() {
+                menuPanelOpen = false;
+                menuPanel.classList.remove('open');
+                clearHighlight();
+                if (!dialog.classList.contains('hidden')) {
+                    chatInput.focus();
+                }
+            }
+
+            function openMenuPanel() {
+                menuPanelOpen = true;
+                menuPanel.classList.add('open');
+                const firstItem = menuPanel.querySelector('.menu-item:not(.menu-divider)');
+                if (firstItem) {
+                    const idx = Array.from(menuItems).indexOf(firstItem);
+                    setHighlight(idx);
+                }
+            }
+
+            function toggleMenuPanel() {
+                if (menuPanelOpen) {
+                    closeMenuPanel();
+                } else {
+                    openMenuPanel();
+                }
+            }
+
+            function executeHighlighted() {
+                if (highlightIndex < 0 || highlightIndex >= menuItems.length) return;
+                const item = menuItems[highlightIndex];
+                if (item.classList.contains('menu-divider')) return;
+                item.click();
+            }
+
+            function handleMenuKeydown(e) {
+                if (!menuPanelOpen) return;
+
+                const key = e.key.toLowerCase();
+                const items = Array.from(menuItems).filter(el => !el.classList.contains('menu-divider'));
+
+                if (items.length === 0) return;
+
+                let currentIdx = -1;
+                if (highlightIndex >= 0) {
+                    const currentItem = menuItems[highlightIndex];
+                    if (currentItem && !currentItem.classList.contains('menu-divider')) {
+                        currentIdx = items.indexOf(currentItem);
+                    }
+                }
+                if (currentIdx === -1) {
+                    let found = -1;
+                    for (let i = 0; i < menuItems.length; i++) {
+                        if (menuItems[i].classList.contains('highlight') && !menuItems[i].classList.contains('menu-divider')) {
+                            found = i;
+                            break;
+                        }
+                    }
+                    if (found !== -1) {
+                        currentIdx = items.indexOf(menuItems[found]);
+                    } else {
+                        currentIdx = -1;
+                    }
+                }
+
+                if (key === 'a') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (currentIdx > 0) {
+                        const newItem = items[currentIdx - 1];
+                        const newIdx = Array.from(menuItems).indexOf(newItem);
+                        setHighlight(newIdx);
+                    } else if (currentIdx === -1 && items.length > 0) {
+                        const lastItem = items[items.length - 1];
+                        setHighlight(Array.from(menuItems).indexOf(lastItem));
+                    } else {
+                        const lastItem = items[items.length - 1];
+                        setHighlight(Array.from(menuItems).indexOf(lastItem));
+                    }
+                } else if (key === 'd') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (currentIdx < items.length - 1 && currentIdx >= 0) {
+                        const newItem = items[currentIdx + 1];
+                        const newIdx = Array.from(menuItems).indexOf(newItem);
+                        setHighlight(newIdx);
+                    } else if (currentIdx === -1 && items.length > 0) {
+                        const firstItem = items[0];
+                        setHighlight(Array.from(menuItems).indexOf(firstItem));
+                    } else {
+                        const firstItem = items[0];
+                        setHighlight(Array.from(menuItems).indexOf(firstItem));
+                    }
+                } else if (key === 's') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (highlightIndex >= 0) {
+                        const item = menuItems[highlightIndex];
+                        if (item && !item.classList.contains('menu-divider')) {
+                            item.click();
+                        }
+                    }
+                } else {
+                    closeMenuPanel();
+                }
+            }
+
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const action = this.dataset.action;
+                    console.log('[QSense] 菜单操作:', action);
+                    placeholder.innerHTML = `
+                        <span class="big">📋</span>
+                        执行操作：<strong>${this.textContent.trim()}</strong>
+                        <br /><br />
+                        <span style="font-size:12px;opacity:0.5;">菜单项 "${action}" 已触发（演示模式）</span>
+                    `;
+                    closeMenuPanel();
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                const homeBtn = document.getElementById('toolHome');
+                const menuBtn = document.getElementById('toolMenu');
+                const historyBtn = document.getElementById('toolHistory');
+                const dialogEl = document.getElementById('dialog');
+
+                if (menuPanel.contains(e.target) ||
+                    homeBtn.contains(e.target) ||
+                    menuBtn.contains(e.target) ||
+                    historyBtn.contains(e.target) ||
+                    dialogEl.contains(e.target)) {
+                    return;
+                }
+                closeMenuPanel();
+            });
+
+            document.addEventListener('keydown', function(e) {
+                const key = e.key.toLowerCase();
+
+                if (key === 'escape' && menuPanelOpen) {
+                    closeMenuPanel();
+                    return;
+                }
+
+                if (menuPanelOpen) {
+                    if (key === 'a' || key === 'd' || key === 's') {
+                        handleMenuKeydown(e);
+                        return;
+                    }
+                    if (e.key.length === 1 || e.key === 'Enter' || e.key === ' ' || e.key === 'Backspace') {
+                        const activeEl = document.activeElement;
+                        if (activeEl && activeEl.tagName === 'TEXTAREA') {
+                            closeMenuPanel();
+                            return;
+                        }
+                        closeMenuPanel();
+                    }
+                }
+            });
+
+            // ===== 对话框控制 =====
+            function resetDialogPosition() {
+                dialog.style.left = DEFAULT_DIALOG_LEFT + 'px';
+                dialog.style.bottom = DEFAULT_DIALOG_BOTTOM + 'px';
+                dialog.style.right = 'auto';
+                dialog.style.top = 'auto';
+                dialog.style.transform = 'none';
+                if (!dialog.classList.contains('hidden')) {
+                    updateMenuPanelPosition();
+                }
+            }
+
+            function closeDialog() {
+                dialog.classList.add('hidden');
+                closeMenuPanel();
+            }
+
+            function openDialog() {
+                resetDialogPosition();
+                dialog.classList.remove('hidden');
+                setTimeout(() => chatInput.focus(), 150);
+            }
+
+            function toggleDialog() {
+                if (dialog.classList.contains('hidden')) {
+                    openDialog();
+                } else {
+                    closeDialog();
+                }
+            }
 
             toolChat.addEventListener('click', function(e) {
                 e.stopPropagation();
                 toggleDialog();
             });
 
-            let captionOn = false;
+            // ===== 主菜单 / 当前菜单 按钮 =====
+            function handleMenuButtonClick(e, label) {
+                e.stopPropagation();
+                if (dialog.classList.contains('hidden')) {
+                    openDialog();
+                }
+                updateMenuPanelPosition();
+                toggleMenuPanel();
+                placeholder.innerHTML = `
+                    <span class="big">${label === '主菜单' ? '🏠' : '☰'}</span>
+                    ${label}
+                    <br /><br />
+                    <span style="font-size:12px;opacity:0.5;">${label === '主菜单' ? '仪表盘 · 工作区 · 设置' : '文件 · 编辑 · 视图 · 工具'}</span>
+                `;
+            }
+
+            toolHome.addEventListener('click', function(e) {
+                handleMenuButtonClick(e, '主菜单');
+            });
+
+            toolMenu.addEventListener('click', function(e) {
+                handleMenuButtonClick(e, '当前菜单');
+            });
+
+            // ===== 历史记录按钮 =====
+            toolHistory.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // 如果有菜单打开，先关闭
+                if (menuPanelOpen) {
+                    closeMenuPanel();
+                }
+                // 显示历史聊天记录
+                placeholder.innerHTML = `
+                    <span class="big">🕐</span>
+                    历史聊天记录
+                    <br /><br />
+                    <div style="text-align:left;max-width:500px;margin:0 auto;font-size:13px;color:var(--text-secondary);opacity:0.8;">
+                        <p style="padding:6px 0;border-bottom:1px solid var(--border-color);">
+                            <span style="color:var(--primary-light);">你</span>：你好，QSense！
+                        </p>
+                        <p style="padding:6px 0;border-bottom:1px solid var(--border-color);">
+                            <span style="color:var(--primary-light);">QSense</span>：你好！有什么可以帮你的？
+                        </p>
+                        <p style="padding:6px 0;border-bottom:1px solid var(--border-color);">
+                            <span style="color:var(--primary-light);">你</span>：帮我生成一个页面
+                        </p>
+                        <p style="padding:6px 0;border-bottom:1px solid var(--border-color);">
+                            <span style="color:var(--primary-light);">QSense</span>：好的，正在生成...
+                        </p>
+                        <p style="padding:6px 0;color:var(--text-tertiary);font-size:12px;text-align:center;">
+                            — 共 12 条历史记录 —
+                        </p>
+                    </div>
+                `;
+            });
+
+            // ===== 字幕功能 =====
+            function splitTextByWidth(text, maxWidth, fontSize, fontFamily) {
+                if (maxWidth <= 0 || !text) return [text || ''];
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.font = `${fontSize}px ${fontFamily}`;
+
+                const bufferChar = '字';
+                const bufferWidth = ctx.measureText(bufferChar.repeat(5)).width;
+                const effectiveMaxWidth = maxWidth - bufferWidth;
+                const finalMaxWidth = Math.max(effectiveMaxWidth, maxWidth * 0.5);
+
+                const lines = [];
+                let currentLine = '';
+
+                for (const char of text) {
+                    const testLine = currentLine + char;
+                    const metrics = ctx.measureText(testLine);
+                    if (metrics.width > finalMaxWidth && currentLine.length > 0) {
+                        lines.push(currentLine);
+                        currentLine = char;
+                    } else {
+                        currentLine = testLine;
+                    }
+                }
+                if (currentLine) {
+                    lines.push(currentLine);
+                }
+                return lines.length > 0 ? lines : [text];
+            }
+
+            function showSubtitleLines(lines, index) {
+                if (!captionOn || index >= lines.length) {
+                    isSubtitlePlaying = false;
+                    subtitleArea.classList.remove('active');
+                    subtitleArea.innerHTML = '';
+                    return;
+                }
+
+                subtitleArea.innerHTML = '';
+                const span = document.createElement('span');
+                span.className = 'subtitle-line';
+                span.textContent = lines[index];
+                subtitleArea.appendChild(span);
+                subtitleArea.classList.add('active');
+
+                subtitleTimer = setTimeout(() => {
+                    showSubtitleLines(lines, index + 1);
+                }, 3200);
+            }
+
+            function startSubtitle(text) {
+                if (subtitleTimer) {
+                    clearTimeout(subtitleTimer);
+                    subtitleTimer = null;
+                }
+                subtitleArea.classList.remove('active');
+                subtitleArea.innerHTML = '';
+
+                if (!captionOn) return;
+
+                const rect = subtitleArea.getBoundingClientRect();
+                const paddingLeft = parseInt(window.getComputedStyle(subtitleArea).paddingLeft) || 28;
+                const paddingRight = parseInt(window.getComputedStyle(subtitleArea).paddingRight) || 28;
+                const maxWidth = rect.width - paddingLeft - paddingRight;
+
+                const computedStyle = window.getComputedStyle(subtitleArea);
+                const fontSize = parseInt(computedStyle.fontSize) || 24;
+                const fontFamily = computedStyle.fontFamily || '"Inter", "PingFang SC", "Microsoft YaHei", sans-serif';
+
+                const lines = splitTextByWidth(text, maxWidth, fontSize, fontFamily);
+                if (lines.length === 0) return;
+
+                isSubtitlePlaying = true;
+                showSubtitleLines(lines, 0);
+            }
+
+            function stopSubtitle() {
+                if (subtitleTimer) {
+                    clearTimeout(subtitleTimer);
+                    subtitleTimer = null;
+                }
+                subtitleArea.classList.remove('active');
+                subtitleArea.innerHTML = '';
+                isSubtitlePlaying = false;
+            }
+
             toolCaption.addEventListener('click', function(e) {
                 e.stopPropagation();
                 captionOn = !captionOn;
                 this.style.color = captionOn ? 'var(--primary)' : '';
-                console.log('[QSense] 字幕:', captionOn ? '开启' : '关闭');
-                placeholder.innerHTML = `
-                    <span class="big">📝</span>
-                    字幕 ${captionOn ? '已开启' : '已关闭'}
-                    <br /><br />
-                    <span style="font-size:12px;opacity:0.5;">${captionOn ? '实时转录已激活' : '字幕功能已停用'}</span>
-                `;
-            });
 
-            let isDragging = false;
-            let offsetX = 0, offsetY = 0;
-            dragArea.addEventListener('mousedown', function(e) {
-                if (e.button !== 0) return;
-                isDragging = true;
-                const rect = dialog.getBoundingClientRect();
-                offsetX = e.clientX - rect.left;
-                offsetY = e.clientY - rect.top;
-                dialog.style.cursor = 'grabbing';
-                document.body.style.userSelect = 'none';
-                e.preventDefault();
-            });
-            document.addEventListener('mousemove', function(e) {
-                if (!isDragging) return;
-                let left = e.clientX - offsetX;
-                let top = e.clientY - offsetY;
-                const maxX = window.innerWidth - dialog.offsetWidth - 10;
-                const maxY = window.innerHeight - dialog.offsetHeight - 10;
-                left = Math.max(10, Math.min(left, maxX));
-                top = Math.max(10, Math.min(top, maxY));
-                dialog.style.left = left + 'px';
-                dialog.style.top = top + 'px';
-                dialog.style.right = 'auto';
-                dialog.style.bottom = 'auto';
-                dialog.style.transform = 'none';
-                e.preventDefault();
-            });
-            document.addEventListener('mouseup', function() {
-                if (isDragging) {
-                    isDragging = false;
-                    dialog.style.cursor = '';
-                    document.body.style.userSelect = '';
+                if (!captionOn) {
+                    stopSubtitle();
+                    placeholder.innerHTML = `
+                        <span class="big">📝</span>
+                        字幕已关闭
+                        <br /><br />
+                        <span style="font-size:12px;opacity:0.5;">字幕功能已停用</span>
+                    `;
+                } else {
+                    placeholder.innerHTML = `
+                        <span class="big">📝</span>
+                        字幕已开启
+                        <br /><br />
+                        <span style="font-size:12px;opacity:0.5;">实时转录已激活</span>
+                    `;
+                    const inputText = chatInput.value.trim();
+                    if (inputText) {
+                        startSubtitle(inputText);
+                    }
                 }
             });
 
+            // ===== 输入模式切换 =====
             let modeIndex = 0;
             const modes = ['九键', '全键盘', '语音'];
             toolMode.addEventListener('click', function(e) {
@@ -599,28 +1306,7 @@
                 console.log('[QSense] 切换输入模式:', modes[modeIndex]);
             });
 
-            toolHome.addEventListener('click', function(e) {
-                e.stopPropagation();
-                console.log('[QSense] 主菜单');
-                placeholder.innerHTML = `
-                    <span class="big">🏠</span>
-                    主菜单
-                    <br /><br />
-                    <span style="font-size:12px;opacity:0.5;">仪表盘 · 工作区 · 设置</span>
-                `;
-            });
-
-            toolMenu.addEventListener('click', function(e) {
-                e.stopPropagation();
-                console.log('[QSense] 当前菜单');
-                placeholder.innerHTML = `
-                    <span class="big">☰</span>
-                    当前菜单
-                    <br /><br />
-                    <span style="font-size:12px;opacity:0.5;">文件 · 编辑 · 视图 · 工具</span>
-                `;
-            });
-
+            // ===== 弹窗 =====
             const modalData = {
                 about: {
                     title: '关于 QSense',
@@ -691,6 +1377,7 @@
                 }
             });
 
+            // ===== 发送消息 =====
             function handleSend() {
                 const text = chatInput.value.trim();
                 if (!text) {
@@ -698,12 +1385,17 @@
                     setTimeout(() => { chatInput.style.border = 'none'; }, 600);
                     return;
                 }
+
+                if (captionOn) {
+                    startSubtitle(text);
+                }
+
                 placeholder.innerHTML = `
                     <span class="big">💬</span>
                     你发送了：<br />
                     <span style="font-size:20px;color:var(--primary);">“${text}”</span>
                     <br /><br />
-                    <span style="font-size:12px;opacity:0.5;">AI 正在处理 …（演示模式）</span>
+                    <span style="font-size:12px;opacity:0.5;">${captionOn ? '字幕已显示 ✓' : 'AI 正在处理 …（演示模式）'}</span>
                 `;
                 chatInput.value = '';
                 chatInput.focus();
@@ -718,13 +1410,107 @@
                 }
             });
 
+            // ===== 窗口控制 =====
             document.getElementById('winMin').addEventListener('click', () => console.log('[QSense] 最小化'));
             document.getElementById('winMax').addEventListener('click', () => console.log('[QSense] 最大化/还原'));
             document.getElementById('winClose').addEventListener('click', () => console.log('[QSense] 关闭'));
 
-            dialog.classList.remove('hidden');
-            setTimeout(() => chatInput.focus(), 200);
+            // ===== 对话框拖拽 =====
+            let isDragging = false;
+            let offsetX = 0, offsetY = 0;
+
+            dragArea.addEventListener('mousedown', function(e) {
+                if (e.button !== 0) return;
+                if (dialog.classList.contains('hidden')) return;
+                isDragging = true;
+                const rect = dialog.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+                dialog.style.cursor = 'grabbing';
+                document.body.style.userSelect = 'none';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                let left = e.clientX - offsetX;
+                let top = e.clientY - offsetY;
+                const maxX = window.innerWidth - dialog.offsetWidth - 10;
+                const maxY = window.innerHeight - dialog.offsetHeight - 10;
+                left = Math.max(10, Math.min(left, maxX));
+                top = Math.max(10, Math.min(top, maxY));
+                dialog.style.left = left + 'px';
+                dialog.style.top = top + 'px';
+                dialog.style.right = 'auto';
+                dialog.style.bottom = 'auto';
+                dialog.style.transform = 'none';
+                if (menuPanelOpen) {
+                    updateMenuPanelPosition();
+                }
+                e.preventDefault();
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    dialog.style.cursor = '';
+                    document.body.style.userSelect = '';
+                }
+            });
+
+            // ===== 窗口尺寸变化 =====
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if (!dialog.classList.contains('hidden') && menuPanelOpen) {
+                        updateMenuPanelPosition();
+                    }
+                    if (captionOn && isSubtitlePlaying) {
+                        const currentText = subtitleArea.textContent || '';
+                        if (currentText) {
+                            const rect = subtitleArea.getBoundingClientRect();
+                            const paddingLeft = parseInt(window.getComputedStyle(subtitleArea).paddingLeft) || 28;
+                            const paddingRight = parseInt(window.getComputedStyle(subtitleArea).paddingRight) || 28;
+                            const maxWidth = rect.width - paddingLeft - paddingRight;
+                            const computedStyle = window.getComputedStyle(subtitleArea);
+                            const fontSize = parseInt(computedStyle.fontSize) || 24;
+                            const fontFamily = computedStyle.fontFamily || '"Inter", "PingFang SC", "Microsoft YaHei", sans-serif';
+
+                            const newLines = splitTextByWidth(currentText, maxWidth, fontSize, fontFamily);
+                            if (newLines.length > 0 && subtitleTimer) {
+                                if (subtitleTimer) {
+                                    clearTimeout(subtitleTimer);
+                                    subtitleTimer = null;
+                                }
+                                subtitleArea.innerHTML = '';
+                                const span = document.createElement('span');
+                                span.className = 'subtitle-line';
+                                span.textContent = newLines[0] || currentText;
+                                subtitleArea.appendChild(span);
+                                subtitleArea.classList.add('active');
+                                subtitleTimer = setTimeout(() => {
+                                    if (newLines.length > 1) {
+                                        showSubtitleLines(newLines.slice(1), 0);
+                                    } else {
+                                        isSubtitlePlaying = false;
+                                        subtitleArea.classList.remove('active');
+                                        subtitleArea.innerHTML = '';
+                                    }
+                                }, 3200);
+                            }
+                        }
+                    }
+                }, 300);
+            });
+
+            // ===== 初始化 =====
+            resetDialogPosition();
             console.log('QSense Demo 已启动 ✅');
+            console.log('💡 点击右侧 📝 开启字幕，输入文字后发送即可显示在底部字幕区');
+            console.log('💡 点击右侧 🏠 或 ☰ 在对话框下方展开菜单面板');
+            console.log('💡 菜单打开时：A/D 左右移动光标，S 选择，其他按键关闭菜单');
+            console.log('💡 点击 🕐 查看历史聊天记录');
         })();
     </script>
 
