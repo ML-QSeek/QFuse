@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QSense</title>
+    <title>QFuse</title>
     <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
     <style>
         /* ===== CSS Variables ===== */
@@ -27,6 +27,8 @@
             --scrollbar-thumb: #3a2c24;
             --scrollbar-thumb-hover: #5a4438;
             --menu-highlight: rgba(246, 176, 124, 0.25);
+            --history-user-msg: rgba(246, 176, 124, 0.08);
+            --history-ai-msg: rgba(246, 176, 124, 0.03);
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -255,6 +257,7 @@
             font-family: inherit;
             padding: 0;
             flex-shrink: 0;
+            position: relative;
         }
         .edge-toolbar .tool-box .tool-btn:hover {
             color: var(--primary-light);
@@ -265,6 +268,11 @@
         }
         .edge-toolbar .tool-box .tool-btn:not(:last-child) {
             border-bottom: 1px solid var(--border-color);
+        }
+        /* 历史按钮激活状态 */
+        .edge-toolbar .tool-box .tool-btn.active {
+            color: var(--primary);
+            text-shadow: 0 0 16px rgba(246,176,124,0.6);
         }
 
         /* ===== 底部工具栏 ===== */
@@ -490,6 +498,78 @@
             transform: scale(0.94);
         }
 
+        /* ===== 对话框上方 聊天记录面板（无标题栏） ===== */
+        .history-panel {
+            position: fixed;
+            left: 160px;
+            bottom: calc(160px + 44px + 4px);
+            width: 520px;
+            max-height: 340px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.6), 0 8px 30px rgba(0,0,0,0.4);
+            z-index: 97;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(8px) scale(0.96);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            transform-origin: bottom center;
+        }
+        .history-panel.open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        .history-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-height: 0;
+        }
+
+        .history-msg {
+            padding: 6px 12px;
+            border-radius: 0;
+            font-size: 13px;
+            line-height: 1.6;
+            max-width: 92%;
+            word-break: break-word;
+        }
+        .history-msg.user {
+            align-self: flex-end;
+            background: var(--history-user-msg);
+            border-left: 2px solid var(--primary);
+            color: var(--text-primary);
+        }
+        .history-msg.ai {
+            align-self: flex-start;
+            background: var(--history-ai-msg);
+            border-left: 2px solid var(--text-tertiary);
+            color: var(--text-secondary);
+        }
+        .history-msg .msg-time {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            opacity: 0.6;
+            display: block;
+            margin-top: 2px;
+        }
+        .history-empty {
+            color: var(--text-tertiary);
+            font-size: 13px;
+            text-align: center;
+            padding: 30px 0;
+            opacity: 0.5;
+        }
+
         /* ===== 对话框下方菜单面板 ===== */
         .dialog-menu-panel {
             position: fixed;
@@ -684,6 +764,15 @@
                 height: 14px;
                 margin: 0 1px;
             }
+
+            .history-panel {
+                left: 16px;
+                bottom: calc(56px + 40px + 3px);
+                width: calc(100% - 32px);
+                max-height: 240px;
+            }
+            .history-panel-body { padding: 8px 8px; }
+            .history-msg { font-size: 12px; padding: 4px 10px; }
         }
     </style>
 </head>
@@ -691,7 +780,7 @@
 
     <!-- ===== TOP BAR ===== -->
     <div id="topbar">
-        <div class="logo-group"><span class="logo-q">QSense</span></div>
+        <div class="logo-group"><span class="logo-q">QFuse</span></div>
         <div class="flex-spacer"></div>
         <div class="top-menu-wrapper">
             <button class="top-menu-btn" data-modal="about">关于我们</button>
@@ -752,6 +841,13 @@
     <!-- ===== 底部字幕区 ===== -->
     <div id="subtitleArea"></div>
 
+    <!-- ===== 对话框上方 聊天记录面板（无标题栏） ===== -->
+    <div class="history-panel" id="historyPanel">
+        <div class="history-panel-body" id="historyBody">
+            <!-- 由 JS 动态渲染 -->
+        </div>
+    </div>
+
     <!-- ===== 对话框 ===== -->
     <div class="dialog-container" id="dialog">
         <div class="dialog-drag-area" id="dialogDragArea"></div>
@@ -802,7 +898,7 @@
             const toolMode = document.getElementById('toolMode');
             const toolHome = document.getElementById('toolHome');
             const toolMenu = document.getElementById('toolMenu');
-            const toolHistory = document.getElementById('toolHistory');  // 新增
+            const toolHistory = document.getElementById('toolHistory');
 
             const btnSave = document.getElementById('btnSave');
             const btnSubmit = document.getElementById('btnSubmit');
@@ -816,10 +912,16 @@
             const modalContent = document.getElementById('modalContent');
             const topMenuBtns = document.querySelectorAll('.top-menu-btn');
 
+            // ===== 历史记录面板 =====
+            const historyPanel = document.getElementById('historyPanel');
+            const historyBody = document.getElementById('historyBody');
+            let historyPanelOpen = false;
+
             // ===== 菜单面板 =====
             const menuPanel = document.getElementById('dialogMenuPanel');
             const menuItems = menuPanel.querySelectorAll('.menu-item');
             let highlightIndex = -1;
+            let menuPanelOpen = false;
 
             // ===== 字幕相关 =====
             const subtitleArea = document.getElementById('subtitleArea');
@@ -827,9 +929,80 @@
             let isSubtitlePlaying = false;
             let subtitleTimer = null;
 
-            // 默认对话框位置（左下 → 右上偏移）
+            // 默认对话框位置
             const DEFAULT_DIALOG_LEFT = 160;
             const DEFAULT_DIALOG_BOTTOM = 160;
+
+            // ===== 模拟聊天数据 =====
+            const chatHistory = [
+                { role: 'user', text: '你好，QFuse！', time: '10:32' },
+                { role: 'ai', text: '你好！有什么可以帮你的？', time: '10:32' },
+                { role: 'user', text: '帮我生成一个登录页面', time: '10:33' },
+                { role: 'ai', text: '好的，正在生成一个简洁的登录页面...', time: '10:33' },
+                { role: 'ai', text: '已完成！包含用户名、密码输入框和登录按钮，采用深色风格。', time: '10:34' },
+                { role: 'user', text: '能加一个注册链接吗？', time: '10:35' },
+                { role: 'ai', text: '没问题，已添加"注册新账号"链接在登录按钮下方。', time: '10:35' },
+                { role: 'user', text: '界面再精致一些', time: '10:36' },
+                { role: 'ai', text: '已优化：添加了渐变背景、毛玻璃效果和更细腻的动效。', time: '10:37' },
+                { role: 'user', text: '完美，谢谢！', time: '10:38' },
+                { role: 'ai', text: '不客气！有需要随时找我 😊', time: '10:38' },
+                { role: 'user', text: '对了，支持暗色模式吗？', time: '10:39' },
+                { role: 'ai', text: '当前界面已经是暗色主题，并且支持一键切换亮色模式（开发中）。', time: '10:40' },
+            ];
+
+            // ===== 渲染历史记录 =====
+            function renderHistory() {
+                if (chatHistory.length === 0) {
+                    historyBody.innerHTML = `<div class="history-empty">暂无聊天记录</div>`;
+                    return;
+                }
+                let html = '';
+                chatHistory.forEach(msg => {
+                    const roleClass = msg.role === 'user' ? 'user' : 'ai';
+                    const label = msg.role === 'user' ? '你' : 'QFuse';
+                    html += `
+                        <div class="history-msg ${roleClass}">
+                            <strong>${label}</strong>：${msg.text}
+                            <span class="msg-time">${msg.time}</span>
+                        </div>
+                    `;
+                });
+                historyBody.innerHTML = html;
+                historyBody.scrollTop = historyBody.scrollHeight;
+            }
+
+            // ===== 历史面板控制 =====
+            function updateHistoryPanelPosition() {
+                const rect = dialog.getBoundingClientRect();
+                const gap = 4;
+                historyPanel.style.left = rect.left + 'px';
+                historyPanel.style.width = rect.width + 'px';
+                historyPanel.style.bottom = (window.innerHeight - rect.top + gap) + 'px';
+            }
+
+            function openHistoryPanel() {
+                if (historyPanelOpen) return;
+                historyPanelOpen = true;
+                historyPanel.classList.add('open');
+                toolHistory.classList.add('active');
+                updateHistoryPanelPosition();
+                renderHistory();
+            }
+
+            function closeHistoryPanel() {
+                if (!historyPanelOpen) return;
+                historyPanelOpen = false;
+                historyPanel.classList.remove('open');
+                toolHistory.classList.remove('active');
+            }
+
+            function toggleHistoryPanel() {
+                if (historyPanelOpen) {
+                    closeHistoryPanel();
+                } else {
+                    openHistoryPanel();
+                }
+            }
 
             // ===== 页面历史管理 =====
             const pageHistory = {
@@ -853,7 +1026,7 @@
 
             function handleSave() {
                 const html = getCurrentCanvasHTML();
-                console.log('[QSense] 保存当前HTML');
+                console.log('[QFuse] 保存当前HTML');
                 btnSave.style.color = 'var(--success-color)';
                 setTimeout(() => { btnSave.style.color = ''; }, 500);
                 placeholder.innerHTML = `
@@ -865,7 +1038,7 @@
             }
 
             function handleSubmit() {
-                console.log('[QSense] 提交HTML让AI修改');
+                console.log('[QFuse] 提交HTML让AI修改');
                 btnSubmit.style.color = 'var(--primary)';
                 setTimeout(() => { btnSubmit.style.color = ''; }, 500);
                 placeholder.innerHTML = `
@@ -906,8 +1079,6 @@
             btnNext.addEventListener('click', handleNext);
 
             // ===== 菜单面板控制 =====
-            let menuPanelOpen = false;
-
             function updateMenuPanelPosition() {
                 const rect = dialog.getBoundingClientRect();
                 menuPanel.style.left = rect.left + 'px';
@@ -939,6 +1110,7 @@
             }
 
             function openMenuPanel() {
+                // 菜单打开时，不关闭历史面板（两者可以共存）
                 menuPanelOpen = true;
                 menuPanel.classList.add('open');
                 const firstItem = menuPanel.querySelector('.menu-item:not(.menu-divider)');
@@ -1039,7 +1211,7 @@
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const action = this.dataset.action;
-                    console.log('[QSense] 菜单操作:', action);
+                    console.log('[QFuse] 菜单操作:', action);
                     placeholder.innerHTML = `
                         <span class="big">📋</span>
                         执行操作：<strong>${this.textContent.trim()}</strong>
@@ -1060,7 +1232,8 @@
                     homeBtn.contains(e.target) ||
                     menuBtn.contains(e.target) ||
                     historyBtn.contains(e.target) ||
-                    dialogEl.contains(e.target)) {
+                    dialogEl.contains(e.target) ||
+                    historyPanel.contains(e.target)) {
                     return;
                 }
                 closeMenuPanel();
@@ -1069,9 +1242,15 @@
             document.addEventListener('keydown', function(e) {
                 const key = e.key.toLowerCase();
 
-                if (key === 'escape' && menuPanelOpen) {
-                    closeMenuPanel();
-                    return;
+                if (key === 'escape') {
+                    if (historyPanelOpen) {
+                        closeHistoryPanel();
+                        return;
+                    }
+                    if (menuPanelOpen) {
+                        closeMenuPanel();
+                        return;
+                    }
                 }
 
                 if (menuPanelOpen) {
@@ -1105,6 +1284,9 @@
             function closeDialog() {
                 dialog.classList.add('hidden');
                 closeMenuPanel();
+                if (historyPanelOpen) {
+                    closeHistoryPanel();
+                }
             }
 
             function openDialog() {
@@ -1153,33 +1335,15 @@
             // ===== 历史记录按钮 =====
             toolHistory.addEventListener('click', function(e) {
                 e.stopPropagation();
-                // 如果有菜单打开，先关闭
+                if (dialog.classList.contains('hidden')) {
+                    openDialog();
+                }
+                // 如果菜单面板打开，先关闭菜单（菜单关闭，历史打开）
                 if (menuPanelOpen) {
                     closeMenuPanel();
                 }
-                // 显示历史聊天记录
-                placeholder.innerHTML = `
-                    <span class="big">🕐</span>
-                    历史聊天记录
-                    <br /><br />
-                    <div style="text-align:left;max-width:500px;margin:0 auto;font-size:13px;color:var(--text-secondary);opacity:0.8;">
-                        <p style="padding:6px 0;border-bottom:1px solid var(--border-color);">
-                            <span style="color:var(--primary-light);">你</span>：你好，QSense！
-                        </p>
-                        <p style="padding:6px 0;border-bottom:1px solid var(--border-color);">
-                            <span style="color:var(--primary-light);">QSense</span>：你好！有什么可以帮你的？
-                        </p>
-                        <p style="padding:6px 0;border-bottom:1px solid var(--border-color);">
-                            <span style="color:var(--primary-light);">你</span>：帮我生成一个页面
-                        </p>
-                        <p style="padding:6px 0;border-bottom:1px solid var(--border-color);">
-                            <span style="color:var(--primary-light);">QSense</span>：好的，正在生成...
-                        </p>
-                        <p style="padding:6px 0;color:var(--text-tertiary);font-size:12px;text-align:center;">
-                            — 共 12 条历史记录 —
-                        </p>
-                    </div>
-                `;
+                updateHistoryPanelPosition();
+                toggleHistoryPanel();
             });
 
             // ===== 字幕功能 =====
@@ -1303,16 +1467,16 @@
             toolMode.addEventListener('click', function(e) {
                 e.stopPropagation();
                 modeIndex = (modeIndex + 1) % modes.length;
-                console.log('[QSense] 切换输入模式:', modes[modeIndex]);
+                console.log('[QFuse] 切换输入模式:', modes[modeIndex]);
             });
 
             // ===== 弹窗 =====
             const modalData = {
                 about: {
-                    title: '关于 QSense',
+                    title: '关于 QFuse',
                     icon: 'ℹ️',
                     content: `
-                        <p><strong>QSense</strong> — 基于 WASD 盲打 + 鼠标协作的极简 AI 交互模式。</p>
+                        <p><strong>QFuse</strong> — 基于 WASD 盲打 + 鼠标协作的极简 AI 交互模式。</p>
                         <br />
                         <p><strong>设计理念</strong></p>
                         <p>· 空画布：不预设任何功能，让 AI 决定画布上有什么</p>
@@ -1411,9 +1575,9 @@
             });
 
             // ===== 窗口控制 =====
-            document.getElementById('winMin').addEventListener('click', () => console.log('[QSense] 最小化'));
-            document.getElementById('winMax').addEventListener('click', () => console.log('[QSense] 最大化/还原'));
-            document.getElementById('winClose').addEventListener('click', () => console.log('[QSense] 关闭'));
+            document.getElementById('winMin').addEventListener('click', () => console.log('[QFuse] 最小化'));
+            document.getElementById('winMax').addEventListener('click', () => console.log('[QFuse] 最大化/还原'));
+            document.getElementById('winClose').addEventListener('click', () => console.log('[QFuse] 关闭'));
 
             // ===== 对话框拖拽 =====
             let isDragging = false;
@@ -1447,6 +1611,9 @@
                 if (menuPanelOpen) {
                     updateMenuPanelPosition();
                 }
+                if (historyPanelOpen) {
+                    updateHistoryPanelPosition();
+                }
                 e.preventDefault();
             });
 
@@ -1463,8 +1630,13 @@
             window.addEventListener('resize', function() {
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
-                    if (!dialog.classList.contains('hidden') && menuPanelOpen) {
-                        updateMenuPanelPosition();
+                    if (!dialog.classList.contains('hidden')) {
+                        if (menuPanelOpen) {
+                            updateMenuPanelPosition();
+                        }
+                        if (historyPanelOpen) {
+                            updateHistoryPanelPosition();
+                        }
                     }
                     if (captionOn && isSubtitlePlaying) {
                         const currentText = subtitleArea.textContent || '';
@@ -1506,11 +1678,13 @@
 
             // ===== 初始化 =====
             resetDialogPosition();
-            console.log('QSense Demo 已启动 ✅');
+            renderHistory();
+            console.log('QFuse Demo 已启动 ✅');
             console.log('💡 点击右侧 📝 开启字幕，输入文字后发送即可显示在底部字幕区');
             console.log('💡 点击右侧 🏠 或 ☰ 在对话框下方展开菜单面板');
             console.log('💡 菜单打开时：A/D 左右移动光标，S 选择，其他按键关闭菜单');
-            console.log('💡 点击 🕐 查看历史聊天记录');
+            console.log('💡 点击 🕐 在对话框上方展开/关闭历史聊天记录面板');
+            console.log('💡 历史面板和菜单面板可以同时打开；点击历史按钮会关闭菜单');
         })();
     </script>
 
